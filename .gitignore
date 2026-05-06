@@ -1,0 +1,4 @@
+ragenv/
+data/
+*.csv
+__pycache__/
