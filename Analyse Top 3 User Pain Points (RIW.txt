@@ -1,0 +1,52 @@
+Analyse: Top 3 User Pain Points (RIWA GIS)
+Pain Point 1: UI/UX Komplexität & Navigation
+Beschreibung: Nutzer können sich in der neuen Programmieroberfläche nicht zurechtfinden, Module sind unübersichtlich, zu viele Klicks nötig, Ebenen-Management ist fehlerhaft (schwarzer Bildschirm bei geteilter Karte, Maus-Hänger bei Geländeschnitt).
+
+Grobe Häufigkeit: 8+ Tickets (Irschenberg, Bad Staffelstein, Wildflecken, Allgemein, Otterfing, etc.)
+
+Root Cause: Zu komplexe UI-Design-Entscheidungen, fehlende Benutzerfreundlichkeit, keine Möglichkeit zur individuellen Anpassung der Ebenendarstellung.
+
+Stimme der Nutzer:
+
+"Massive Kritik an Modulupdates, sehr unübersichtlich, viel zu viele Klicks, Ausblenden von VZ war früher einfacher" – Herr Fellner, Irschenberg
+
+"Umstellung auf die neue Programmieroberfläche kommt nicht so gut beim Kunden an" – Allgemein
+
+"richtige Ebene wählen, wenn mehrere übereinander sind vereinfachen, Geländeschnitt bspw. 'hängt' an der Maus" – Herr Kleinheinz, Wildflecken
+
+Pain Point 2: Fehlende Funktionen & Schnittstellen
+Beschreibung: Kritische Funktionen fehlen (Register-Anbindung, Projektpläne, individuelle Berichte, 10% Schnittstellen-Umfang), Datenübernahme in falsche Felder, keine Anbindung von Registern.
+
+Grobe Häufigkeit: 7+ Tickets (Karlstadt, Kastl, Hettstadt, Würzburg, Schweinfurt, Stephanskirchen, etc.)
+
+Root Cause: Systemarchitektur ist nicht auf reale Praxisanforderungen ausgelegt, fehlende API-Integrationen, zu komplexe Module (Versorgungsleitungen).
+
+Stimme der Nutzer:
+
+"Schnittstelle deckt nur 10% vom logisch notwendigen Umfang ab" – Herr Binner, Karlstadt
+
+"Keine Anbindung von Registern möglich. Großzahl der Kommunen arbeiten mit Registern" – Frau Bäuml, Kastl
+
+"kein Projektplan, keine Infos über Zeitschiene und Schritte etc." – Herr Neubert, Würzburg
+
+Pain Point 3: Kommunikations- & Prozess-Transparenz
+Beschreibung: Keine Rückmeldungen, ewige Wartezeiten, keine Informationen über Status, Erledigung ohne Info, Daten fehlen (Bauherren-Daten, Entwurfsverfassen).
+
+Grobe Häufigkeit: 6+ Tickets (Miltenberg, Hammelburg, Schweinfurt, Stephanskirchen, Landkreisgemeinden Neuburg Schrobenhausen, etc.)
+
+Root Cause: Fehlende Prozess-Transparenz im System, keine Status-Updates, manuelle Prozesse ohne Automatisierung.
+
+Stimme der Nutzer:
+
+"tlw. Wochen und Monate geht nichts vorran und es gibt keine Infos" – Frau Bischof, Miltenberg
+
+"Problem mit Kommunikation, Wartezeit und RÜckmeldung zur Einbindung und Umsetzung" – Frau Ostendorp, Hammelburg
+
+"Datenübernahme verbessern, nicht in eine Zeile sondern in die richtigen Felder" – Bürgermeister, Landkreisgemeinden Neuburg Schrobenhausen
+
+Zusammenfassung
+Pain Point	Frustrationsgrad	Dringlichkeit
+UI/UX Komplexität	🔴 Hoch	🔴 Sofort
+Fehlende Funktionen	🟠 Mittel-Hoch	🟠 Kurzfristig
+Kommunikations-Prozesse	🟠 Mittel	🟠 Kurzfristig
+Empfehlung: Priorität 1: UI vereinfachen, Priorität 2: Kritische Schnittstellen implementieren, Priorität 3: Prozess-Transparenz automatisieren.
