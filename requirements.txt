@@ -5,3 +5,5 @@ lxml
 pydantic
 langchain-ollama
 langchain-core
+langchain-community
+chromadb
