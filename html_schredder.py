@@ -1,5 +1,6 @@
 import os
 import csv
+import re
 from bs4 import BeautifulSoup
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
@@ -33,6 +34,17 @@ chain = prompt_template | llm
 # ==========================================
 # 3. DIE SCHREDDER-MASCHINE
 # ==========================================
+# ==========================================
+# NEU: DETERMINISTISCHER DATENSCHUTZ-FILTER (REGEX)
+# ==========================================
+def scrub_pii(text):
+    # 1. E-Mail-Adressen löschen
+    text = re.sub(r'[\w\.-]+@[\w\.-]+\.\w+', '[EMAIL ENTFERNT]', text)
+    # 2. Telefonnummern (sehr grobes deutsches Muster) löschen
+    text = re.sub(r'(?:\+49|0)[1-9][0-9\s\-\/]{7,}', '[TELEFON ENTFERNT]', text)
+    # 3. Kontonummern / IBANs (DE gefolgt von 20 Ziffern)
+    text = re.sub(r'DE\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{2}', '[IBAN ENTFERNT]', text)
+    return text
 def shredder():
     print(f"\n🚜 Starte HTML-Schredder im robusten Plain-Text-Modus...\n")
     ergebnisse = []
@@ -65,7 +77,7 @@ def shredder():
                     with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
                         soup = BeautifulSoup(f, "lxml")
                         reiner_text = soup.get_text(separator=" ", strip=True) 
-                        
+                        reiner_text = scrub_pii(reiner_text)
                     if len(reiner_text) < 20: continue
                         
                     # Großzügige 3000 Zeichen (für Kundenprobleme weit unten im Verlauf)

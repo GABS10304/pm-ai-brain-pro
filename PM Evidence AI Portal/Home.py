@@ -1,25 +1,62 @@
 import streamlit as st
 
-# Seiteneinstellung für das gesamte Portal (Ohne Firmennamen)
+# ==========================================
+# 1. SETUP & PAGE CONFIG
+# ==========================================
 st.set_page_config(
-    page_title="PM AI Brain Pro Suite",
-    page_icon="🧠",
+    page_title="RIWA AI Pro Suite",
+    page_icon="🏢",
     layout="wide"
 )
 
-# Das Markdown Badge (jetzt korrekt verpackt für Python)
-st.markdown("[![No Backend](https://img.shields.io/badge/Architecture-100%25%20Lokal-success)](#)")
+# Der Architektur-Badge oben links
+st.markdown("[![Architecture](https://img.shields.io/badge/Architecture-Hybrid%20(Local%20AI%20+%20Cloud%20SQL)-blue)](#)")
 
-st.title("Willkommen in der PM AI Brain Pro Suite 🚀")
-st.markdown("---")
+st.title("Willkommen in der RIWA AI Pro Suite 🚀")
+st.markdown("Deine interne Werkzeugkiste für datengetriebene Entscheidungen. Wähle unten das passende Tool für deine heutige Aufgabe aus:")
 
-st.markdown("""
-Dieses Portal vereint alle datenschutzkonformen (Offline-)KI-Werkzeuge für dein Produktmanagement und RevOps-Team.
+st.divider()
 
-👈 **Wähle links im Menü dein Werkzeug aus:**
+# ==========================================
+# 2. DIE SUITE (APP-STORE LAYOUT)
+# ==========================================
+col1, col2 = st.columns(2)
 
-*   **🕵️‍♂️ PM Problem Copilot:** Wirf deine Support-Tickets und Umfragen hinein und chatte mit deinen Daten, um strategische Epics und Pain-Points zu extrahieren.
-*   **💼 Sales Strategy Brain:** Lade Vertriebstransaktionen hoch und lass Python deterministisch deine ICP-Kandidaten (Ideal Customer Profile) berechnen.
+# --- REIHE 1 ---
+with col1:
+    st.info("### 📊 1. Product Feedback Dashboard")
+    st.write("**Aufgabe:** Du willst die 'Voice of the Customer' verstehen.")
+    st.write("- Zieht harte Zahlen live aus deinen BigQuery-Tabellen.")
+    st.write("- Vereint strukturierte Umfragen (NPS/CSVs) und geschredderte Support-Tickets (HTML).")
+    st.write("- Liefert dir fertige, priorisierte Produkt-Epics aus dem Analysten-Skript.")
+    st.write("- **Zielgruppe:** Product Manager, Support Leads, UX-Designer.")
 
-*Hinweis: Dies ist eine 100% lokale Instanz. Es werden keine Daten an Cloud-Anbieter (LLM-APIs) gesendet.*
-""")
+with col2:
+    st.success("### 💼 2. Sales Strategy Tool")
+    st.write("**Aufgabe:** Du musst Vetriebs-Strategien oder ICPs festlegen.")
+    st.write("- Rechnet Verträge, Netto-Werte und Preise datenschutzkonform in Python aus.")
+    st.write("- KI generiert ein Sales Cheat-Sheet aus harten Rabatt-Zahlen.")
+    st.write("- **Zielgruppe:** Revenue Operations, Sales Management.")
+
+st.markdown("<br>", unsafe_allow_html=True) # Etwas Abstand für ein sauberes Layout
+
+# --- REIHE 2 ---
+col3, col4 = st.columns(2)
+
+with col3:
+    st.warning("### 🧠 3. Freier KI-Chat (Copilot)")
+    st.write("**Aufgabe:** Du hast spezielle Rohdaten und offene Fragen.")
+    st.write("- Lade eine x-beliebige eigene CSV-Datei (z.B. neue Umfragen) hoch.")
+    st.write("- Die RAG-Architektur macht deine Datei in 5 Sekunden durchsuchbar.")
+    st.write("- Chatte mit der KI wie mit einem Analysten über diese Daten.")
+    st.write("- **Zielgruppe:** Analysten, PMs im Deep-Dive.")
+
+with col4:
+    st.error("### ⚙️ 4. System Admin Bereich")
+    st.write("**Aufgabe:** Daten aufbereiten und in die Cloud pushen.")
+    st.write("- Der IT-Maschinenraum deines Portals.")
+    st.write("- Hier laufen die Schredder-, Filter- und Aggregator-Skripte im Hintergrund.")
+    st.write("- **Bitte nur betreten, wenn du frische Rohdaten für das Dashboard verarbeiten willst!**")
+
+st.divider()
+st.markdown("<small><i>Architektur: Hybrides Setup (Lokal laufende Ollama LLMs + Google BigQuery Anbindung). Datenschutzkonform nach DSGVO.</i></small>", unsafe_allow_html=True)

@@ -1,116 +1,120 @@
-import csv
+import pandas as pd
 import os
-from pydantic import BaseModel, Field
-from langchain_ollama import ChatOllama
+import csv
+import re
+from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 
-# ==================================================
-# 1. SETUP & PATH-KONFIGURATION
-# ==================================================
+# ==========================================
+# 1. SETUP & PFADE
+# ==========================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 FILE_A = os.path.join(BASE_DIR, "tickets_a.csv")
 FILE_B = os.path.join(BASE_DIR, "tickets_b.csv")
 OUTPUT_FILE = os.path.join(BASE_DIR, "Schnelles_PM_Backlog.csv")
 
 DELIMITER = ";"
 
-# Dein lokales Modell (Meta's schnelles 3-Milliarden-Parameter Modell)
-llm = ChatOllama(model="llama3.2", temperature=0.0, format="json")
+# Schnelles Modell ohne Absturz-gefährdete JSON-Schleifen
+llm = OllamaLLM(model="llama3.2", temperature=0.0)
 
-# ==================================================
-# 2. DAS PYDANTIC MODELL (Striktes Regelwerk)
-# ==================================================
-class PMInsight(BaseModel):
-    kategorie: str = Field(default="Keine", description="MUSST du aus dieser Liste wählen: 'Feature-Wunsch', 'Bug', 'Usability', 'Prozess/Schulung'.")
-    ticket_titel: str = Field(default="", description="Maximal 5-7 Worte. z.B. 'Webinare für Updates anbieten' oder 'Darstellung Bauanträge anpassen'.")
-    pm_zusammenfassung: str = Field(default="", description="Keine Floskeln! Nenne konkret in 1-2 Sätzen, welches Feature oder welcher Prozess laut Nutzer fehlt oder gebaut werden muss.")
+# ==========================================
+# 2. DATENSCHUTZ & FILTER-REGELN
+# ==========================================
+def scrub_pii(text):
+    text = re.sub(r'[\w\.-]+@[\w\.-]+\.\w+', '[EMAIL ENTFERNT]', text)
+    text = re.sub(r'(?:\+49|0)[1-9][0-9\s\-\/]{7,}', '[TELEFON ENTFERNT]', text)
+    text = re.sub(r'DE\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{2}', '[IBAN ENTFERNT]', text)
+    return text
 
-structured_llm = llm.with_structured_output(PMInsight)
+prompt = """Du bist Product Manager für eine GIS-Software. Lies dieses Kundenfeedback.
 
-prompt_template = ChatPromptTemplate.from_messages([
-    ("system", """Du bist ein extrem analytischer, knallharter Product Manager für B2B-Software.
-    Regeln:
-    1. Fasse den Schmerzpunkt des Nutzers kurz zusammen.
-    2. Keine leeren Phrasen wie 'Wir müssen eine Lösung finden'. Sag konkret, WAS gemacht werden muss.
-    3. Nutze für den Titel maximal 7 Worte!
-    """),
-    ("human", "Lese diesen Text und leite ein To-Do ab:\n{freitext}")
-])
+Regel 1: Wenn es nur Floskeln sind ("Alles gut", "Nein", "Keine", "Weiter so") oder unverständlicher Müll, antworte EXAKT mit dem Wort: IRRELEVANT
+Regel 2: Wenn ein echter Wunsch, Bug oder eine Kritik drinsteckt, fasse das Kernproblem in 1 bis 2 Sätzen sauber zusammen.
 
-chain = prompt_template | structured_llm
+KUNDEN-FEEDBACK:
+{freitext}
+"""
+prompt_template = ChatPromptTemplate.from_template(prompt)
+chain = prompt_template | llm
 
-# ==================================================
+# ==========================================
 # 3. DIE TURBO-VERARBEITUNG
-# ==================================================
+# ==========================================
 def process_fast_csv(filepath: str, customer_col: int, freitext_col: int, source_name: str) -> list:
     results = []
-    
     if not os.path.exists(filepath):
         print(f"⚠️ Datei nicht gefunden: {filepath}")
         return results
 
-    print(f"\n🚀 Turbo-Scan für {filepath} (Nur Freitexte)...")
+    print(f"\n🚀 Turbo-Scan für {os.path.basename(filepath)}...")
     
     with open(filepath, mode='r', encoding='utf-8-sig', errors='replace') as file:
         reader = csv.reader(file, delimiter=DELIMITER)
         next(reader, None) # Kopfzeile überspringen
         
         for row_num, row in enumerate(reader, start=2):
-            
-            # Sicherheitscheck: Hat die Zeile überhaupt so viele Spalten?
             if len(row) <= freitext_col:
                 continue
                 
             kunde = row[customer_col].strip() if len(row) > customer_col else f"Zeile {row_num}"
             freitext = row[freitext_col].strip()
             
-            # HIER FINDET DIE MAGIE STATT: Müll sofort blockieren!
+            # Harte Müll-Ausfilterung vor dem KI-Aufruf
             if not freitext or len(freitext) < 5 or freitext.lower() in ["nein", "keine", "-", "alles gut", "nichts", "passt"]:
-                # Skript springt zur nächsten Zeile, ohne die KI zu wecken!
                 continue
                 
-            print(f"   🧠 KI analysiert echten Freitext von: {kunde[:20]}...")
+            # 🛡️ DATENSCHUTZ-FILTER AKTIVIEREN
+            freitext = scrub_pii(freitext)
+            
+            print(f"   🧠 KI analysiert: {kunde[:20]}...")
             
             try:
-                # KI bekommt NUR den relevanten Text!
-                insight = chain.invoke({"freitext": freitext})
-
-                results.append({
-                    "Quelle": source_name,
-                    "Kunde": kunde,
-                    "Original-Wortlaut (Freitext)": freitext,
-                    "Kategorie": insight.kategorie,
-                    "Titel (Jira)": insight.ticket_titel,
-                    "Was ist zu tun?": insight.pm_zusammenfassung
-                })
-                print(f"      ✅ Backlog-Item erstellt: {insight.ticket_titel}")
+                antwort_text = chain.invoke({"freitext": freitext}).strip()
+                
+                if antwort_text != "IRRELEVANT":
+                    results.append({
+                        "Ordner / Modul": "Umfrage", # Einheitlich zum Schredder
+                        "Quelle (Dateiname)": source_name,
+                        "Kategorie": "Umfrage-Extrakt",
+                        "Original-Wortlaut (Freitext)": antwort_text
+                    })
+                    print("      ✅ Insight extrahiert!")
+                else:
+                    print("      🚮 Irrelevant.")
             except Exception as e:
-                print(f"      ⚠️ Fehler: {e}")
+                print(f"      ⚠️ Fehler bei der Auswertung: {e}")
                 
     return results
 
-# ==================================================
+# ==========================================
 # 4. START & EXPORT
-# ==================================================
+# ==========================================
 if __name__ == "__main__":
+    
+    # 🛡️ PRE-FLIGHT CHECK: Ist Excel geschlossen?
+    if os.path.exists(OUTPUT_FILE):
+        try:
+            with open(OUTPUT_FILE, mode='a', encoding='utf-8-sig') as f_test: 
+                pass 
+        except PermissionError:
+            print("\n🛑 STOPP! FATALER FEHLER BEVOR ES LOSGEHT!")
+            print(f"Die Datei '{os.path.basename(OUTPUT_FILE)}' ist aktuell in Excel geöffnet!")
+            print("Bitte schließe Excel komplett und starte das Skript danach neu. Abbruch.")
+            exit()
+
     final_backlog = []
     
-    # FILE A: Kunde ist Spalte A (0), Feedback ist Spalte D (3)
+    # Datei A und B nacheinander pumpen
     final_backlog.extend(process_fast_csv(FILE_A, customer_col=0, freitext_col=3, source_name="Kundenumfrage (A)"))
-
-    # FILE B: Kunde/Landkreis ist Spalte B (1), Feedback ist Spalte Q (16)
     final_backlog.extend(process_fast_csv(FILE_B, customer_col=1, freitext_col=16, source_name="NPS Umfrage (B)"))
-    
+
     if final_backlog:
-        print(f"\n💾 Speichere {len(final_backlog)} gefilterte Insights in '{OUTPUT_FILE}'...")
         keys = final_backlog[0].keys()
-        
         with open(OUTPUT_FILE, mode='w', encoding='utf-8-sig', newline='') as f:
-            dict_writer = csv.DictWriter(f, fieldnames=keys, delimiter=';')
-            dict_writer.writeheader()
-            dict_writer.writerows(final_backlog)
-            
-        print("🎉 FERTIG! Phase 1 (Extraktion) ist abgeschlossen. Öffne die CSV in Excel!")
+            writer = csv.DictWriter(f, fieldnames=keys, delimiter=';')
+            writer.writeheader()
+            writer.writerows(final_backlog)
+        print("\n🎉 FERTIG! Phase 1 (Extraktion) ist datenschutzsicher abgeschlossen.")
     else:
         print("\n🤷 Keine relevanten Freitexte gefunden.")
