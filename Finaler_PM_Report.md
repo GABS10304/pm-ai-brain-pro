@@ -1,9 +1,17 @@
-﻿Basierend auf der Analyse von 573 Kundenfeedbacks habe ich die folgenden Top 5 EPICS-Liste erstellt:
+﻿**Basierend auf der Analyse von 573 Tickets, sind hier die priorisierten Top 5 Problemfelder:**
 
-1. **Fehlende Funktion zur Offline-Ladung von Karten**: Einige Benutzer haben Probleme mit der Möglichkeit, Karten offline zu laden.
-2. **Excel-Export fehlt**: Einige Benutzer haben Schwierigkeiten, Daten aus der GIS-Software RIWA in Excel zu exportieren.
-3. **Fehlende Multi-Benutzer-Funktion**: Die App startet immer mit demselben Benutzer, da sie keine Multi-Benutzer-Funktion unterstützt und es keine Möglichkeit gibt, einen anderen Benutzer anzumelden oder zu wechseln.
-4. **Probleme mit der Datenimportation in der Baumkontrollapp**: Einige Benutzer haben Probleme mit der Datenimportation in der Baumkontrollapp, da die gesamte Projektstruktur weg ist.
-5. **Keine Möglichkeit, mehrere Bäume gleichzeitig auszuwählen und als Liste auszugeben**: Dieses Problem wird von Kunden oft genannt und es gibt keine klare Lösung.
+| # | EPIC (übergeordnetes Problemfeld) | Kerninhalte (zusammengefasste Pain‑Points) |
+|---|-----------------------------------|--------------------------------------------|
+| 1 | **Daten‑Import / -Export & Synchronisation** | • Fehlgeschlagene Uploads/Downloads (AL‑KIS, WSG, Bauanträge, PDFs, CSV, Excel, DXF, SHP, GPKG, GeoJSON, XML) <br>• Fehlermeldungen beim Import/Export (z. B. Fehler 1046, falsche Koordinaten, getrennte Zahlen/Nenner) <br>• Keine oder fehlerhafte Auto‑Update‑/Auto‑Sync‑Funktionen, fehlende Log‑Einträge <br>• Datenverlust bzw. falsche Ergebnisse nach Überschreiben oder erneuter Synchronisation |
+| 2 | **App‑Stabilität & Absturz‑Verhalten** | • Anwendungen starten nicht oder schließen sich sofort (nach Updates, beim Aufruf von Karten‑ oder Daten‑Manager) <br>• Unerwartete Rückkehr zur Hauptmaske, Navigation‑Fehler <br>• Kern‑Bugs in Modulen (Puffer, Schnitt, 3‑D‑Modell, API‑Link) führen zu Fehlermeldungen <br>• Instabile Versionen nach Installation/Update (fehlende Installationsdateien, fehlerhafte Patch‑Ausführung) |
+| 3 | **Berechtigungen, Lizenz‑ und Rollen‑Management** | • Fehlende oder falsche Schreib‑/Import‑Rechte, fehlerhafte Benutzer‑Löschung <br>• Lizenzverlust (PRO‑Lizenz verschwindet, falsche Lizenzzuweisungen) <br>• Probleme bei Modul‑ und Benutzer‑Zuweisungen (nach Neu‑Installation, bei Vermessungsdaten) <br>• Aktivierungscodes/Proxy‑Authentifizierung werden nicht akzeptiert |
+| 4 | **Konnektivität, Netzwerk‑ und GPS‑Stabilität** | • Wiederholte Verbindungsabbrüche (Telefon, Mobile‑App, PPM‑Commander, RTK‑Quelle, Sapos‑Dienste, Server‑Authentifizierung) <br>• GPS‑Funktion nicht verfügbar oder inkonsistent (ausgegrautes Symbol, falsche Position) <br>• Proxy‑ bzw. Authentifizierungsprobleme bei WMS‑Integration, TERA‑DAT‑Schnittstelle <br>• Schwankende Netzwerk‑Stabilität führt zu „keine Verbindung“-Meldungen und fehlerhaften Darstellungen |
+| 5 | **Usability, UI‑Mängel & fehlende Funktionen** | • Unvollständige/fehlerhafte UI‑Elemente (fehlende Mehrfachauswahl, unzureichende Filter, fehlende Verantwortlichen‑Anzeige, fehlende Kamera‑Features) <br>• Fehlende oder defekte Kern‑Features (automatische MwSt‑Berechnung, Bau‑Turbo, Änderungsbescheide, Spielplatz‑Modul, PDF‑Export, Layer‑Reihenfolge‑Steuerung) <br>• Anzeige‑ und Darstellungsprobleme (Layer‑Ladefehler, falsche Farben/Symbole, fehlende Beschriftungen, 3‑D‑Modelle auf Mobilgeräten) <br>• Dokumentenerstellung (z. B. Friedhofs‑Modul) und Workflow‑Schwierigkeiten (Zeitaufschreibung, Daten‑Suche) |
 
-Diese EPICS-Liste umfasst die häufigsten Probleme, die in den Kundenfeedbacks erwähnt wurden. Es ist wichtig zu beachten, dass diese Liste nicht vollständig ist und weitere Probleme möglicherweise vorhanden sind.
+**Interpretation für die Roadmap**
+
+1. **Daten‑Import/Export & Sync** ist das größte Cluster von Fehlermeldungen – hier sollten robuste Import‑/Export‑Adapter, einheitliche Fehlermeldungen und ein zuverlässiger Sync‑Mechanismus priorisiert werden.  
+2. **App‑Stabilität** ist die Basis für jede weitere Verbesserung; ein systematisches Crash‑Reporting und automatisierte Regressionstests sind notwendig.  
+3. **Berechtigungen & Lizenzierung** blockieren die Nutzung kritischer Funktionen – ein zentrales Rollen‑ und Lizenz‑Management mit klaren Fehlermeldungen muss implementiert werden.  
+4. **Konnektivität & GPS** beeinflusst sowohl Feld‑ als auch Büro‑Nutzer; Netzwerk‑Resilienz, Offline‑Modi und ein stabiler GPS‑Stack sind entscheidend.  
+5. **Usability & fehlende Features** treiben die langfristige Kundenzufriedenheit – gezielte UI‑Optimierungen und die Implementierung der am häufigsten nachgefragten Funktionen (z. B. Mehrfachauswahl, Export nach CSV/DXF, automatische MwSt‑Berechnung) sollten in den nächsten Sprints angelegt werden.

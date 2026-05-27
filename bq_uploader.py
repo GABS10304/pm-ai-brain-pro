@@ -3,48 +3,45 @@ import pandas as pd
 from google.cloud import bigquery
 
 # ==========================================
-# 1. SETUP & AUTHENTIFIKATION
+# 1. SETUP
 # ==========================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, "gcp-key.json")
 
-# HIER IST DEINE GEWÜNSCHTE DATEI:
-INPUT_CSV = os.path.join(BASE_DIR, "HTML_Tickets_Fertig_fuer_Copilot.csv")
+# HIER NEHMEN WIR DEINE UMFRAGEN CSV
+INPUT_CSV = os.path.join(BASE_DIR, "Schnelles_PM_Backlog.csv")
 
-# 🚨 Neuer Tabellenname für die HTML-Tickets!
-BIGQUERY_TABLE = "pm-analytics-496606.pm_daten.html_tickets_rohdaten"
+# 🚨 HIER IST DER NAME, DEN DEIN DASHBOARD SUCHT
+BIGQUERY_TABLE = "pm-analytics-496606.pm_daten.anonymes_pm_backlog"
 
-DELIMITER = ";"
-
-# ==========================================
-# 2. UPLOAD-FUNKTION
-# ==========================================
-def upload_html_tickets_to_bigquery():
-    print(f"🚀 Starte BigQuery-Upload für HTML-Tickets...")
+def upload():
+    print(f"🚀 Starte Cloud-Upload...")
     
     if not os.path.exists(INPUT_CSV):
-        print(f"⚠️ Datei {INPUT_CSV} nicht gefunden!")
+        print(f"⚠️ Datei nicht gefunden!")
         return
 
-    df = pd.read_csv(INPUT_CSV, sep=DELIMITER, encoding="utf-8-sig", on_bad_lines='skip')
+    df = pd.read_csv(INPUT_CSV, sep=";", encoding="utf-8-sig", on_bad_lines='skip')
     
-    # Spaltennamen SQL-sicher machen (er macht z.B aus 'Ordner / Modul' -> 'Ordner___Modul')
-    df.columns = df.columns.str.replace(' ', '_').str.replace('-', '_').str.replace('(', '').str.replace(')', '').str.replace('/', '_')
+    if df.empty:
+        print("🛑 Die Datei ist leer! Abbruch.")
+        return
+
+    # Spalten bereinigen
+    # Spalten bereinigen (inkl. Fragezeichen!)
+    df.columns = df.columns.str.replace(' ', '_').str.replace('-', '_').str.replace('(', '').str.replace(')', '').str.replace('/', '_').str.replace('?', '')
 
     client = bigquery.Client()
-    job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
+    job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE", autodetect=True)
 
-    print(f"☁️ Sende {len(df)} geschredderte Tickets an: {BIGQUERY_TABLE}...")
+    print(f"☁️ Sende {len(df)} Zeilen an {BIGQUERY_TABLE}...")
     
     try:
-        job = client.load_table_from_dataframe(df, BIGQUERY_TABLE, job_config=job_config)
-        job.result() 
-        
-        table = client.get_table(BIGQUERY_TABLE)
-        print(f"\n🎉 ERFOLG! Die Datei ist hochgeladen. Die Tabelle hat jetzt {table.num_rows} Zeilen.")
-    
+        job = client.load_table_from_dataframe(df, BIGQUERY_TABLE, job_config=job_config, location="EU")
+        job.result()  
+        print(f"\n🎉 ERFOLG! Die CSV wurde erfolgreich als Tabelle in die Cloud geladen!")
     except Exception as e:
         print(f"\n❌ Fehler beim Upload: {e}")
 
 if __name__ == "__main__":
-    upload_html_tickets_to_bigquery()
+    upload()

@@ -26,7 +26,7 @@ if "dash_messages" not in st.session_state:
     st.session_state.dash_messages = []
 
 # ==========================================
-# 2. NEU: DER DATENQUIELLEN-SCHALTER
+# 2. DER DATENQUELLEN-SCHALTER
 # ==========================================
 st.markdown("### 🎛️ Datenquelle wählen")
 datenquelle = st.radio(
@@ -35,24 +35,27 @@ datenquelle = st.radio(
     horizontal=True
 )
 
-# Wir weisen dem Radio-Button die korrekte BigQuery Tabelle zu
 if "Support-Tickets" in datenquelle:
     aktuelle_tabelle = "pm-analytics-496606.pm_daten.html_tickets_rohdaten"
+    gruppierungs_spalte = "Ordner___Modul"
+    ui_name = "Modul"
 else:
-    # Die Tabelle, die wir vorhin als Test-CSV/Umfrage hochgeladen hatten
     aktuelle_tabelle = "pm-analytics-496606.pm_daten.anonymes_pm_backlog"
+    gruppierungs_spalte = "Kunde" 
+    ui_name = "Kunde / Ort"
 
 # ==========================================
-# 3. SQL ABFRAGE
+# 3. DYNAMISCHE SQL ABFRAGE
 # ==========================================
-# Wir geben den Tabellennamen mit, damit Streamlit den Cache für beide Tabellen sauber trennt
 @st.cache_data(ttl=600) 
-def load_bigquery_data(table_name):
+def load_bigquery_data(table_name, group_col, label):
     client = bigquery.Client()
+    # Benennt die Spalte SQL-intern jetzt dynamisch absolut korrekt!
+    safe_label = label.replace(' / ', '_')
     query = f"""
-        SELECT Ordner___Modul as Modul, COUNT(*) as Anzahl
+        SELECT {group_col} as {safe_label}, COUNT(*) as Anzahl
         FROM `{table_name}`
-        GROUP BY Ordner___Modul
+        GROUP BY {group_col}
         ORDER BY Anzahl DESC
     """
     query_job = client.query(query)
@@ -63,11 +66,12 @@ def load_bigquery_data(table_name):
 # ==========================================
 try:
     with st.spinner(f"Lade Live-Daten aus {aktuelle_tabelle}..."):
-        df = load_bigquery_data(aktuelle_tabelle)
+        df = load_bigquery_data(aktuelle_tabelle, gruppierungs_spalte, ui_name)
+        safe_col_name = ui_name.replace(' / ', '_')
 
     # --- TEIL 1: CHARTS ---
-    st.subheader(f"Verteilung der Schmerzpunkte ({datenquelle})")
-    fig = px.bar(df, x="Modul", y="Anzahl", text="Anzahl", color="Modul", template="plotly_white")
+    st.subheader(f"Verteilung der Schmerzpunkte ({datenquelle[:15]}...)")
+    fig = px.bar(df, x=safe_col_name, y="Anzahl", text="Anzahl", color=safe_col_name, template="plotly_white")
     fig.update_traces(textposition='outside')
     st.plotly_chart(fig, use_container_width=True)
 
@@ -88,21 +92,22 @@ try:
 
     # --- TEIL 3: DER SQL-DRILL-DOWN ---
     st.subheader("🔍 Deep-Dive: Rohdaten-Verifizierung")
-    alle_module = df["Modul"].tolist()
-    gewaehltes_modul = st.selectbox("Modul auswählen:", options=alle_module)
+    alle_kategorien = df[safe_col_name].tolist()
+    gewaehltes_item = st.selectbox(f"{ui_name} auswählen:", options=alle_kategorien)
 
-    if gewaehltes_modul:
+    if gewaehltes_item:
         client = bigquery.Client()
-        safe_modul = gewaehltes_modul.replace("\\", "\\\\")
+        safe_item = gewaehltes_item.replace("\\", "\\\\")
         
-        # Nutzt jetzt auch den dynamischen Tabellennamen!
         detail_query = f"""
-            SELECT Quelle_Dateiname as Ticket_ID, Original_Wortlaut_Freitext as Problem_Beschreibung
+            SELECT *
             FROM `{aktuelle_tabelle}`
-            WHERE Ordner___Modul = '{safe_modul}'
+            WHERE {gruppierungs_spalte} = '{safe_item}'
         """
         detail_df = pd.DataFrame([dict(row) for row in client.query(detail_query)])
-        st.dataframe(detail_df, hide_index=True, use_container_width=True)
+        
+        cols_to_show = [c for c in detail_df.columns if c not in ["Kategorie", "Ordner___Modul"]]
+        st.dataframe(detail_df[cols_to_show], hide_index=True, use_container_width=True)
 
     st.divider()
 
@@ -135,4 +140,4 @@ try:
             st.session_state.dash_messages.append(AIMessage(content=full_response))
 
 except Exception as e:
-    st.error(f"Es gab ein Problem: {e}")
+    st.error(f"Es gab ein Problem bei der Auswertung (SQL): {e}")
